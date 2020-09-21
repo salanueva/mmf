@@ -92,6 +92,13 @@ class MMFTransformer(BaseTransformer):
                 else:
                     image_modal = sample_list["image_feature_0"]
                 input_ids[modality] = self.image_encoder(image_modal)
+            else:
+                if modality in sample_list:
+                    modal = sample_list[modality]
+                    encoder = getattr(self, f"{modality}_encoder", None)
+                    input_ids[modality] = modal
+                    if encoder is not None:
+                        input_ids[modality] = encoder(modal)
 
         # Position IDs
         position_ids: Dict[str, Tensor] = {}
@@ -132,10 +139,10 @@ class MMFTransformer(BaseTransformer):
                     masks[modality] = sample_list["input_mask"][:, idx]
                 else:
                     masks[modality] = sample_list["input_mask"]
-
-            elif self.modality_type[idx] == "image":
-                if "image_mask" in sample_list:
-                    masks[modality] = sample_list["image_mask"]
+            else:
+                mask_attribute = f"{modality}_mask"
+                if mask_attribute in sample_list:
+                    masks[modality] = sample_list[mask_attribute]
                 else:
                     masks[modality] = torch.ones(
                         input_ids[modality].size()[:-1],
