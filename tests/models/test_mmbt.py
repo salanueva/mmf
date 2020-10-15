@@ -32,6 +32,7 @@ class TestMMBTTorchscript(unittest.TestCase):
         config.model_config[model_name]["num_labels"] = 2
         self.finetune_model = model_class(config.model_config[model_name])
         self.finetune_model.build()
+        self.finetune_model.init_losses()
 
     @test_utils.skip_if_no_network
     def test_load_save_finetune_model(self):
@@ -54,9 +55,9 @@ class TestMMBTTorchscript(unittest.TestCase):
         test_sample_list = SampleList([test_sample])
 
         with torch.no_grad():
-            model_output = self.finetune_model.model(test_sample_list)
+            model_output = self.finetune_model(test_sample_list)
 
-        script_model = torch.jit.script(self.finetune_model.model)
+        script_model = torch.jit.script(self.finetune_model)
         with torch.no_grad():
             script_output = script_model(test_sample_list)
 
